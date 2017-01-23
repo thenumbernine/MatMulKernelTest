@@ -5,17 +5,17 @@ I want to verify that it is proportional to operations
 --]]
 require 'ext'
 local ffi = require 'ffi'
+
+local platform, device, ctx, queue = require 'cl'{
+	
+}
+
+error'here'
+
 local cl = require 'ffi.OpenCL'
 local CLEvent = require 'cl.event'
+local env = require 'cl.obj.env'{size={256,256}, queue={properties=cl.CL_QUEUE_PROFILING_ENABLE}}
 local template = require 'template'
-
-local env = require 'cl.obj.env'{
-	size = {256,256},
-	precision = 'float',
-	queue = {
-		properties = cl.CL_QUEUE_PROFILING_ENABLE,
-	},
-}
 
 local maxsamples = 50
 local maxsize = 40

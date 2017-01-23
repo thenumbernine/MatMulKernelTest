@@ -8,7 +8,7 @@ end
 print'executing lua'
 exec'./grid-mul-obj.lua'
 --]]
---[[
+-- [[
 print'executing c++'
 exec'lua -lmake'
 exec'dist/linux/release/MatMulKernelTest'

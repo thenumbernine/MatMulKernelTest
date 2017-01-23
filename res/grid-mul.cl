@@ -46,5 +46,3 @@ kernel void mul(
 		}
 	}
 }
-
-#error
