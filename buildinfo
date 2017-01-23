@@ -1,0 +1,6 @@
+distName='MatMulKernelTest'
+distType='app'
+depends:append{'../Common', '../CLCommon'}
+
+-- this should be called in CLCommon/buildinfo ...
+macros:append{'__CL_ENABLE_EXCEPTIONS', '__CL_OVERRIDE_ERROR_STRINGS'}

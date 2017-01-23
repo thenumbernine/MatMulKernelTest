@@ -88,7 +88,6 @@ typedef struct {
 		local thisTime = tonumber(finish - start) * 1e-9
 		times:insert(thisTime)
 	end
-	print(size, (times:inf()))
 	return times
 end)
 
@@ -100,8 +99,18 @@ for i,size in ipairs(sizes) do
 	allSizes:append(range(#times[i]):map(function() return size end))	-- table{size}:rep(#times[i])
 end
 
+local avgs = times:map(function(time) return time:sum()/#time end)
+local mins = times:map(function(time) return (time:inf()) end)
+local maxs = times:map(function(time) return (time:sup()) end)
+
+print('#size	min	avg	max	times')
+for i,size in ipairs(sizes) do
+	local time = times[i]
+	print(size, mins[i], avgs[i], maxs[i], time:unpack())
+end
+
 require 'gnuplot'{
-	persist = true,
+	output = 'out.lua.png',
 	xlabel = 'size of vector/matrix multiplication within each grid cell',
 	ylabel = 'seconds',
 	xtics = 1,
@@ -109,9 +118,9 @@ require 'gnuplot'{
 	data = {
 		allSizes, allTimes,
 		sizes,
-		times:map(function(time) return (time:inf()) end), 
-		times:map(function(time) return time:sum()/#time end), 
-		times:map(function(time) return (time:sup()) end), 
+		mins, 
+		avgs, 
+		maxs, 
 	},
 	{using='1:2', title='time', with='points'},
 	{using='3:4', title='min', with='lines'},
