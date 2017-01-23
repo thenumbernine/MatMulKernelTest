@@ -10,8 +10,9 @@ local CLEvent = require 'cl.event'
 local env = require 'cl.obj.env'{size={256,256}, queue={properties=cl.CL_QUEUE_PROFILING_ENABLE}}
 local template = require 'template'
 
-local maxsize = 50
-local maxsamples = 40
+local maxsamples = 50
+local maxsize = 40
+
 local sizes = range(maxsize)
 local times = sizes:map(function(size)
 	local vecType = 'vec_'..size..'_t'
@@ -35,7 +36,7 @@ typedef struct {
 	local y = env:buffer{name='y', type=vecType}
 	local A = env:buffer{name='A', type=matType}
 	-- initialize
-	env:kernel{
+	local init = env:kernel{
 		argsOut = {x, y, A},
 		header = typeCode,
 		body = template([[
@@ -54,11 +55,13 @@ typedef struct {
 			vecType = vecType,
 			matType = matType,
 		}),
-	}()
+	}
+	
+	init()
 	
 	-- perform operation
 	local event = CLEvent()
-	mulKernel = env:kernel{
+	mul = env:kernel{
 		argsOut = {y},
 		argsIn = {A, x},
 		event = event,
@@ -81,13 +84,22 @@ typedef struct {
 	}
 	local times = table()
 	for try=1,maxsamples do
-		mulKernel()
-		mulKernel.event:wait()
+		mul()
+		event:wait()
 		local start = event:getProfilingInfo'CL_PROFILING_COMMAND_START'
 		local finish = event:getProfilingInfo'CL_PROFILING_COMMAND_END'
 		local thisTime = tonumber(finish - start) * 1e-9
 		times:insert(thisTime)
 	end
+
+	x.obj:release()	-- will the gc know not to release after this call?
+	y.obj:release()
+	A.obj:release()
+	init.obj:release()
+	init.program.obj:release()
+	mul.obj:release()
+	mul.program.obj:release()
+
 	return times
 end)
 
@@ -103,11 +115,15 @@ local avgs = times:map(function(time) return time:sum()/#time end)
 local mins = times:map(function(time) return (time:inf()) end)
 local maxs = times:map(function(time) return (time:sup()) end)
 
-print('#size	min	avg	max	times')
+local f = assert(io.open('out.lua.txt', 'w'))
+f:write'#size	min	avg	max	times\n'
+f:flush()
 for i,size in ipairs(sizes) do
 	local time = times[i]
-	print(size, mins[i], avgs[i], maxs[i], time:unpack())
+	f:write(size,'\t',mins[i],'\t',avgs[i],'\t',maxs[i],'\t',time:concat'\t','\n')
+	f:flush()
 end
+f:close()
 
 require 'gnuplot'{
 	output = 'out.lua.png',

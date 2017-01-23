@@ -15,11 +15,11 @@ int main() {
 	std::string realStr = "float";
 	typedef float real;
 
-	size_t gridsize = 4;
+	size_t gridsize = 256;
 	cl::NDRange globalSize(gridsize, gridsize);
 	
 	//TODO calculate this
-	cl::NDRange localSize(4, 4);
+	cl::NDRange localSize(16, 16);
 	
 	std::ofstream f("out.cpp.txt");	
 
