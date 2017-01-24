@@ -1,4 +1,5 @@
 #!/usr/bin/env luajit
+-- usage: ./grid-mul-obj.lua [float|double] max_kernel_size max_number_of_samples
 --[[
 I seem to be getting some funny performance with my HD520 with large multiply kernels across a grid
 I want to verify that it is proportional to operations
@@ -9,16 +10,17 @@ local cl = require 'ffi.OpenCL'
 local CLEvent = require 'cl.event'
 local template = require 'template'
 
+local precision = arg[1] or 'float'
+local maxsize = tonumber(arg[2] or 40)
+local maxsamples = tonumber(arg[3] or 50)
+
 local env = require 'cl.obj.env'{
 	size = {256,256},
-	precision = 'float',
+	precision = precision,
 	queue = {
 		properties = cl.CL_QUEUE_PROFILING_ENABLE,
 	},
 }
-
-local maxsamples = 50
-local maxsize = 40
 
 local sizes = range(maxsize)
 -- running backwards vs forwards makes no difference so allocation order isn't affecting the strange performance curve in Lua
@@ -208,7 +210,7 @@ local avgs = times:map(function(time) return time:sum()/#time end)
 local mins = times:map(function(time) return (time:inf()) end)
 local maxs = times:map(function(time) return (time:sup()) end)
 
-local f = assert(io.open('out.lua.obj.txt', 'w'))
+local f = assert(io.open('out.lua.obj.'..precision..'.txt', 'w'))
 f:write'#size	min	avg	max	times\n'
 f:flush()
 for i,size in ipairs(sizes) do
@@ -219,7 +221,7 @@ end
 f:close()
 
 require 'gnuplot'{
-	output = 'out.lua.obj.png',
+	output = 'out.lua.obj.'..precision..'.png',
 	xlabel = 'size of vector/matrix multiplication within each grid cell',
 	ylabel = 'seconds',
 	xtics = 1,

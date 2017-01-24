@@ -5,10 +5,12 @@ local function exec(cmd)
 end
 
 -- [[
-print'executing lua'
-exec'./grid-mul-obj.lua'
+print'executing lua float'
+exec'./grid-mul-obj.lua float'
+print'executing lua double'
+exec'./grid-mul-obj.lua double'
 --]]
--- [[
+--[[
 print'executing c++'
 exec'lua -lmake'
 exec'dist/linux/release/MatMulKernelTest'
@@ -20,5 +22,6 @@ require 'gnuplot'{
 	xtics = 1,
 	style = 'data linespoints',
 	{datafile='out.cpp.txt', using='1:2', title='C++'},
-	{datafile='out.lua.obj.txt', using='1:2', title='Lua cl.obj'},
+	{datafile='out.lua.obj.float.txt', using='1:2', title='Lua cl.obj float'},
+	{datafile='out.lua.obj.double.txt', using='1:2', title='Lua cl.obj double'},
 }
