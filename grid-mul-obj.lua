@@ -14,6 +14,8 @@ local precision = arg[1] or 'float'
 local maxsize = tonumber(arg[2] or 40)
 local maxsamples = tonumber(arg[3] or 50)
 
+precision = precision == 'float' and 'float' or 'double'
+
 local env = require 'cl.obj.env'{
 	size = {256,256},
 	precision = precision,

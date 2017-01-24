@@ -2,18 +2,24 @@
 #include <Common/File.h>
 #include <Common/Exception.h>
 #include <iostream>
+#include <algorithm>
+#include <vector>
+#include <string>
 
-int main() {
+template<typename real> struct RealStr;
+template<> struct RealStr<float> { static std::string getStr() { return "float"; } };
+template<> struct RealStr<double> { static std::string getStr() { return "double"; } };
+
+template<typename real>
+void test(CLCommon::CLCommon& clCommon) {
+	std::string realStr = RealStr<real>::getStr();
+
 	const int maxsamples = 50;
 	const int maxsize = 40;
 
-	CLCommon::CLCommon clCommon;
 	cl::Context ctx = clCommon.context;
 	cl::CommandQueue cmds = clCommon.commands;
 	cl::Device device = clCommon.device;
-
-	std::string realStr = "float";
-	typedef float real;
 
 	size_t gridsize = 256;
 	cl::NDRange globalSize(gridsize, gridsize);
@@ -21,7 +27,7 @@ int main() {
 	//TODO calculate this
 	cl::NDRange localSize(16, 16);
 	
-	std::ofstream f("out.cpp.txt");	
+	std::ofstream f(std::string() + "out.cpp." + realStr + ".txt");	
 
 	f << "#size	min	avg	max	times" << std::endl;
 
@@ -89,5 +95,44 @@ int main() {
 			f << "\t" << time;
 		}
 		f << std::endl;
+	}
+
+}
+
+bool checkHasFP64(const cl::Device& device) {
+	std::vector<std::string> extensions = CLCommon::getExtensions(device);
+	return std::find(extensions.begin(), extensions.end(), "cl_khr_fp64") != extensions.end();
+}
+
+int main(int argc, char** argv) {
+	bool use64 = true;
+	std::string realStr = (argc > 1) ? argv[1] : "float";
+	if (realStr == "float") use64 = false;
+
+	CLCommon::CLCommon clCommon(
+		/*verbose=*/false,
+		/*pickDevice=*/[&](const std::vector<cl::Device>& devices_) -> std::vector<cl::Device>::const_iterator {
+			std::vector<cl::Device> devices = devices_;
+			std::sort(
+				devices.begin(),
+				devices.end(),
+				[&](const cl::Device& a, const cl::Device& b) -> bool {
+					return checkHasFP64(a) > checkHasFP64(b);
+				});
+
+			cl::Device best = devices[0];
+			//return std::find<std::vector<cl::Device>::const_iterator, cl::Device>(devices_.begin(), devices_.end(), best);
+			for (std::vector<cl::Device>::const_iterator iter = devices_.begin(); iter != devices_.end(); ++iter) {
+				if ((*iter)() == best()) return iter;
+			}
+			throw Common::Exception() << "couldn't find a device";
+		});
+	
+	use64 &= checkHasFP64(clCommon.device);
+
+	if (use64) {
+		test<double>(clCommon);
+	} else {
+		test<float>(clCommon);
 	}
 }
