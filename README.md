@@ -2,4 +2,5 @@ performs a dense matrix multiply at each point in a 256 x 256 grid with local si
 
 result:
 
-![](comparison.png)
+![](comparison-min-float.png)
+![](comparison-min-double.png)

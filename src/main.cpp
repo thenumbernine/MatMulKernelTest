@@ -11,11 +11,13 @@ template<> struct RealStr<float> { static std::string getStr() { return "float";
 template<> struct RealStr<double> { static std::string getStr() { return "double"; } };
 
 template<typename real>
-void test(CLCommon::CLCommon& clCommon) {
+void test(CLCommon::CLCommon& clCommon, int maxsize, int maxsamples) {
 	std::string realStr = RealStr<real>::getStr();
 
-	const int maxsamples = 50;
-	const int maxsize = 40;
+	std::cerr << "using real " << realStr << std::endl;
+	std::cerr << "sizeof real " << sizeof(real) << std::endl;
+	std::cerr << "running until size=" << maxsize << std::endl;
+	std::cerr << "using " << maxsamples << " samples" << std::endl;
 
 	cl::Context ctx = clCommon.context;
 	cl::CommandQueue cmds = clCommon.commands;
@@ -28,7 +30,6 @@ void test(CLCommon::CLCommon& clCommon) {
 	cl::NDRange localSize(16, 16);
 	
 	std::ofstream f(std::string() + "out.cpp." + realStr + ".txt");	
-
 	f << "#size	min	avg	max	times" << std::endl;
 
 	for (int size = 1; size <= maxsize; ++size) {
@@ -51,7 +52,23 @@ void test(CLCommon::CLCommon& clCommon) {
 				<< "failed to build program executable!\n"
 				<< program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device);
 		}
-		//warnings?
+
+/*
+Print any warnings.
+This is giving me results that the Lua version is not:
+But then again, in the Lua version, I'm throwing the log away upon success...
+
+Compilation started
+Compilation done
+Linking started
+Linking done
+Device build started
+Device build done
+Kernel <init> was not vectorized
+Kernel <mul> was not vectorized
+Done.
+
+*/
 		std::cerr << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << std::endl;
 
 		size_t vecSize = gridsize * gridsize * size;
@@ -105,12 +122,11 @@ bool checkHasFP64(const cl::Device& device) {
 }
 
 int main(int argc, char** argv) {
-	bool use64 = true;
 	std::string realStr = (argc > 1) ? argv[1] : "float";
-	if (realStr == "float") use64 = false;
+	bool use64 = realStr != "float";
 
 	CLCommon::CLCommon clCommon(
-		/*verbose=*/false,
+		/*verbose=*/true,
 		/*pickDevice=*/[&](const std::vector<cl::Device>& devices_) -> std::vector<cl::Device>::const_iterator {
 			std::vector<cl::Device> devices = devices_;
 			std::sort(
@@ -129,10 +145,15 @@ int main(int argc, char** argv) {
 		});
 	
 	use64 &= checkHasFP64(clCommon.device);
+	
+	int maxsize = 40;
+	if (argc > 2) maxsize = atoi(argv[2]);
+	int maxsamples = 50;
+	if (argc > 3) maxsamples = atoi(argv[3]);
 
 	if (use64) {
-		test<double>(clCommon);
+		test<double>(clCommon, maxsize, maxsamples);
 	} else {
-		test<float>(clCommon);
+		test<float>(clCommon, maxsize, maxsamples);
 	}
 }

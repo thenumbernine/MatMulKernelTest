@@ -10,11 +10,11 @@ local cl = require 'ffi.OpenCL'
 local CLEvent = require 'cl.event'
 local template = require 'template'
 
-local precision = arg[1] or 'float'
-local maxsize = tonumber(arg[2] or 40)
-local maxsamples = tonumber(arg[3] or 50)
+local precision = (arg[1] or 'float') == 'float' and 'float' or 'double'
+local maxsize = assert(tonumber(arg[2] or 40), "maxsize expected a number, got "..tostring(arg[2]))
+local maxsamples = assert(tonumber(arg[3] or 50), "maxsamples expected a number, got "..tostring(arg[3]))
 
-precision = precision == 'float' and 'float' or 'double'
+local osname = require 'ffi'.os:lower()
 
 local env = require 'cl.obj.env'{
 	size = {256,256},
@@ -22,7 +22,12 @@ local env = require 'cl.obj.env'{
 	queue = {
 		properties = cl.CL_QUEUE_PROFILING_ENABLE,
 	},
+	verbose = true,
 }
+io.stderr:write('using real ',env.real,'\n')
+io.stderr:write('sizeof(real) = ',ffi.sizeof'real','\n')
+io.stderr:write('running until size=',maxsize,'\n')
+io.stderr:write('using ',maxsamples,' samples\n')
 
 local sizes = range(maxsize)
 -- running backwards vs forwards makes no difference so allocation order isn't affecting the strange performance curve in Lua
@@ -49,7 +54,6 @@ typedef struct {
 	local x = env:buffer{name='x', type=vecType}
 	local y = env:buffer{name='y', type=vecType}
 	local A = env:buffer{name='A', type=matType}
-	local event = CLEvent()
 	
 -- compiling two vs one program makes no difference.  why would it anyways?
 --[=[ using two separate programs
@@ -77,10 +81,9 @@ typedef struct {
 	init()
 	
 	-- perform operation
-	mul = env:kernel{
+	local mul = env:kernel{
 		argsOut = {y},
 		argsIn = {A, x},
-		event = event,
 		header = typeCode,
 		body = template([[
 	global <?=vecType?>* yp = y + index;
@@ -167,14 +170,25 @@ kernel void mul(
 		name = 'mul',
 		argsOut = {y},
 		argsIn = {A, x},
-		event = event,
 	}
 
+--[[
+Prints any warnings.
+This is different than the C++ version:
+
+fcl build 1 succeeded.
+bcl build succeeded.
+--]]
 	program:compile()
+	-- why don't I see the same 
+	io.stderr:write(program.obj:getLog(env.device),'\n')
+	io.stderr:write(program.obj:getBuildInfo(env.device, cl.CL_PROGRAM_BUILD_LOG),'\n')
 --]=]
 
 	local times = table()
 	for try=1,maxsamples do
+		local event = CLEvent()
+		mul.event = event
 		mul()
 		event:wait()
 		local start = event:getProfilingInfo'CL_PROFILING_COMMAND_START'
@@ -212,7 +226,7 @@ local avgs = times:map(function(time) return time:sum()/#time end)
 local mins = times:map(function(time) return (time:inf()) end)
 local maxs = times:map(function(time) return (time:sup()) end)
 
-local f = assert(io.open('out.lua.obj.'..precision..'.txt', 'w'))
+local f = assert(io.open('out.'..osname..'.lua.obj.'..precision..'.txt', 'w'))
 f:write'#size	min	avg	max	times\n'
 f:flush()
 for i,size in ipairs(sizes) do
@@ -222,8 +236,9 @@ for i,size in ipairs(sizes) do
 end
 f:close()
 
+--[[
 require 'gnuplot'{
-	output = 'out.lua.obj.'..precision..'.png',
+	output = 'out.'..osname..'.lua.obj.'..precision..'.png',
 	xlabel = 'size of vector/matrix multiplication within each grid cell',
 	ylabel = 'seconds',
 	xtics = 1,
@@ -240,3 +255,4 @@ require 'gnuplot'{
 	{using='3:5', title='avg', with='lines'},
 	{using='3:6', title='max', with='lines'},
 }
+--]]
