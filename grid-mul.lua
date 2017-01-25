@@ -83,7 +83,7 @@ typedef struct {
 	global const <?=vecType?>* xp = x + index;
 	global const <?=matType?>* Ap = A + index;
 	for (int a = 0; a < <?=size?>; ++a) {
-		yp->v[a] = 0.;
+		yp->v[a] = 0;
 		for (int b = 0; b < <?=size?>; ++b) {
 			yp->v[a] += Ap->v[a][b] * xp->v[b];
 		}
@@ -139,7 +139,7 @@ kernel void mul(
 	global const <?=matType?>* Ap = A + index;
 	global const <?=vecType?>* xp = x + index;
 	for (int a = 0; a < <?=size?>; ++a) {
-		yp->v[a] = 0.;
+		yp->v[a] = 0;
 		for (int b = 0; b < <?=size?>; ++b) {
 			yp->v[a] += Ap->v[a][b] * xp->v[b];
 		}

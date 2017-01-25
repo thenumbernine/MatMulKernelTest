@@ -12,19 +12,19 @@ end
 local maxsize = 40
 local maxsamples = 200
 
--- [[
+--[[
 print'executing c++'
 exec'lua -lmake'
 exec('dist/'..distdir..'/release/MatMulKernelTest float '..maxsize..' '..maxsamples)
 --exec('dist/'..distdir..'/release/MatMulKernelTest double '..maxsize..' '..maxsamples)
 --]]
---[[
+-- [[
 print'executing lua float'
-exec('./grid-mul-obj.lua float '..maxsize..' '..maxsamples)
+exec('luajit grid-mul-obj.lua float '..maxsize..' '..maxsamples)
 --]]
 --[[
 print'executing lua double'
-exec('./grid-mul-obj.lua double '..maxsize..' '..maxsamples)
+exec('luajit grid-mul-obj.lua double '..maxsize..' '..maxsamples)
 --]]
 
 print'plotting results...'

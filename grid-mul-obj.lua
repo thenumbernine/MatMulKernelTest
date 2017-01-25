@@ -29,6 +29,10 @@ io.stderr:write('sizeof(real) = ',ffi.sizeof'real','\n')
 io.stderr:write('running until size=',maxsize,'\n')
 io.stderr:write('using ',maxsamples,' samples\n')
 
+local f = assert(io.open('out.'..osname..'.lua.obj.'..precision..'.txt', 'w'))
+f:write'#size	min	avg	max	times\n'
+f:flush()
+
 local sizes = range(maxsize)
 -- running backwards vs forwards makes no difference so allocation order isn't affecting the strange performance curve in Lua
 --local sizes = range(maxsize,1,-1)
@@ -211,9 +215,15 @@ bcl build succeeded.
 	init.obj:release()
 	mul.obj:release()
 --]=]
+	
+	f:write(size,'\t',times:inf(),'\t',times:sum()/#times,'\t',times:sup(),'\t',times:concat'\t','\n')
+	f:flush()
+	
 	return times
 end)
+f:close()
 
+--[[
 -- used for scatterplot
 local allSizes = table()
 local allTimes = table()
@@ -226,17 +236,7 @@ local avgs = times:map(function(time) return time:sum()/#time end)
 local mins = times:map(function(time) return (time:inf()) end)
 local maxs = times:map(function(time) return (time:sup()) end)
 
-local f = assert(io.open('out.'..osname..'.lua.obj.'..precision..'.txt', 'w'))
-f:write'#size	min	avg	max	times\n'
-f:flush()
-for i,size in ipairs(sizes) do
-	local time = times[i]
-	f:write(size,'\t',mins[i],'\t',avgs[i],'\t',maxs[i],'\t',time:concat'\t','\n')
-	f:flush()
-end
-f:close()
 
---[[
 require 'gnuplot'{
 	output = 'out.'..osname..'.lua.obj.'..precision..'.png',
 	xlabel = 'size of vector/matrix multiplication within each grid cell',
