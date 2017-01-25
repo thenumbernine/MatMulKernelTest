@@ -18,7 +18,7 @@ exec'lua -lmake'
 exec('dist/'..distdir..'/release/MatMulKernelTest float '..maxsize..' '..maxsamples)
 --exec('dist/'..distdir..'/release/MatMulKernelTest double '..maxsize..' '..maxsamples)
 --]]
--- [[
+--[[
 print'executing lua float'
 exec('luajit grid-mul-obj.lua float '..maxsize..' '..maxsamples)
 --]]
@@ -37,10 +37,10 @@ for _,prec in ipairs{'float', 'double'} do
 			xtics = 1,
 			--log = 'y',
 			style = 'data linespoints',
-			{datafile='out.linux.cpp.'..prec..'.txt', using='1:'..index, title='C++ '..prec},
-			{datafile='out.linux.lua.obj.'..prec..'.txt', using='1:'..index, title='Lua cl.obj '..prec},
-			{datafile='out.msvc.cpp.'..prec..'.txt', using='1:'..index, title='C++ '..prec},
-			{datafile='out.msvc.lua.obj.'..prec..'.txt', using='1:'..index, title='Lua cl.obj '..prec},
+			{datafile='out.linux.cpp.'..prec..'.txt', using='1:'..index, title='Ubuntu C++ '..prec},
+			{datafile='out.linux.lua.obj.'..prec..'.txt', using='1:'..index, title='Ubuntu Lua cl.obj '..prec},
+			{datafile='out.msvc.cpp.'..prec..'.txt', using='1:'..index, title='Windows C++ '..prec},
+			{datafile='out.msvc.lua.obj.'..prec..'.txt', using='1:'..index, title='Windows Lua cl.obj '..prec},
 		}
 	end
 end
