@@ -6,6 +6,14 @@
 #include <vector>
 #include <string>
 
+#if defined(PLATFORM_linux)
+static std::string platform = "linux";
+#elif defined(PLATFORM_msvc)
+static std::string platform = "msvc";
+#else
+#error unknown platform
+#endif
+
 template<typename real> struct RealStr;
 template<> struct RealStr<float> { static std::string getStr() { return "float"; } };
 template<> struct RealStr<double> { static std::string getStr() { return "double"; } };
@@ -29,7 +37,7 @@ void test(CLCommon::CLCommon& clCommon, int maxsize, int maxsamples) {
 	//TODO calculate this
 	cl::NDRange localSize(16, 16);
 	
-	std::ofstream f(std::string() + "out.cpp." + realStr + ".txt");	
+	std::ofstream f(std::string() + "out." + platform + ".cpp." + realStr + ".txt");	
 	f << "#size	min	avg	max	times" << std::endl;
 
 	for (int size = 1; size <= maxsize; ++size) {
@@ -126,6 +134,7 @@ int main(int argc, char** argv) {
 	bool use64 = realStr != "float";
 
 	CLCommon::CLCommon clCommon(
+		/*useGPU=*/true,
 		/*verbose=*/true,
 		/*pickDevice=*/[&](const std::vector<cl::Device>& devices_) -> std::vector<cl::Device>::const_iterator {
 			std::vector<cl::Device> devices = devices_;

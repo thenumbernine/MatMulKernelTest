@@ -40,7 +40,7 @@ kernel void mul(
 	global const vectype* xp = x + index;
 	global const mattype* Ap = A + index;
 	for (int a = 0; a < size; ++a) {
-		yp->v[a] = 0.;
+		yp->v[a] = 0;
 		for (int b = 0; b < size; ++b) {
 			yp->v[a] += Ap->v[a][b] * xp->v[b];
 		}
