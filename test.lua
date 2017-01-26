@@ -33,14 +33,16 @@ for _,prec in ipairs{'float', 'double'} do
 		local field, index = next(info)
 		require 'gnuplot'{
 			output = 'comparison-'..field..'-'..prec..'.png',
-			title = prec..' '..field..' time',
+			title = field..' time to perform using '..prec..' precision',
+			xlabel = 'matrix/vector multiply size',
+			ylabel = 'seconds',
 			xtics = 1,
 			--log = 'y',
 			style = 'data linespoints',
-			{datafile='out.linux.cpp.'..prec..'.txt', using='1:'..index, title='Ubuntu C++ '..prec},
-			{datafile='out.linux.lua.obj.'..prec..'.txt', using='1:'..index, title='Ubuntu Lua cl.obj '..prec},
-			{datafile='out.msvc.cpp.'..prec..'.txt', using='1:'..index, title='Windows C++ '..prec},
-			{datafile='out.msvc.lua.obj.'..prec..'.txt', using='1:'..index, title='Windows Lua cl.obj '..prec},
+			{datafile='out.linux.cpp.'..prec..'.txt', using='1:'..index, title='Ubuntu C++'},
+			{datafile='out.linux.lua.obj.'..prec..'.txt', using='1:'..index, title='Ubuntu Lua cl.obj'},
+			{datafile='out.msvc.cpp.'..prec..'.txt', using='1:'..index, title='Windows MSVC C++'},
+			{datafile='out.msvc.lua.obj.'..prec..'.txt', using='1:'..index, title='Windows Lua cl.obj'},
 		}
 	end
 end
