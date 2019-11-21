@@ -6,9 +6,9 @@
 #include <vector>
 #include <string>
 
-#if defined(PLATFORM_linux)
+#if PLATFORM_LINUX
 static std::string platform = "linux";
-#elif defined(PLATFORM_msvc)
+#elif PLATFORM_MSVC
 static std::string platform = "msvc";
 #else
 #error unknown platform
