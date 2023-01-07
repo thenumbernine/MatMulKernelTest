@@ -47,9 +47,9 @@ void test(CLCommon::CLCommon& clCommon, int maxsize, int maxsamples) {
 			std::string() + "#define size " + std::to_string(size) + "\n",
 			Common::File::read("res/grid-mul.cl"),
 		};
-		std::vector<std::pair<const char *, size_t>> sources;
+		std::vector<std::string> sources;
 		for (const std::string &s : sourceStrs) {
-			sources.push_back(std::pair<const char *, size_t>(s.c_str(), s.length()));
+			sources.push_back(s);
 		}
 		cl::Program program(ctx, sources);
 
