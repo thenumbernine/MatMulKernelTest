@@ -115,7 +115,7 @@ typedef struct {
 				'typedef '..env.real..' real;',
 				'#define gridsize '..env.base.size.x,
 				'#define size '..size,
-				assert(file'res/grid-mul.cl':read()),
+				assert(path'res/grid-mul.cl':read()),
 			}:concat'\n',
 --]==]
 -- [==[ using env's code
