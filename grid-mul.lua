@@ -12,7 +12,7 @@ local platform, device, ctx, queue = require 'cl'{
 
 error'here'
 
-local cl = require 'ffi.OpenCL'
+local cl = require 'ffi.req' 'OpenCL'
 local CLEvent = require 'cl.event'
 local env = require 'cl.obj.env'{size={256,256}, queue={properties=cl.CL_QUEUE_PROFILING_ENABLE}}
 local template = require 'template'

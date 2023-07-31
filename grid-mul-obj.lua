@@ -6,7 +6,7 @@ I want to verify that it is proportional to operations
 --]]
 require 'ext'
 local ffi = require 'ffi'
-local cl = require 'ffi.OpenCL'
+local cl = require 'ffi.req' 'OpenCL'
 local CLEvent = require 'cl.event'
 local template = require 'template'
 
